@@ -45,7 +45,7 @@ def label_feature_selection(y, df):
 
 
 
-def make_grid(updated_df, target_column):
+def make_grid(updated_df, target_column): # 데이터 증강 비율 계산
     max_strategy = {}
     mean_strategy = {}
     median_strategy = {}
