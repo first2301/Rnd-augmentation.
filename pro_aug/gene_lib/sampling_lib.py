@@ -12,12 +12,9 @@ from sklearn.feature_selection import f_classif
 # Feature Importance Based Feature Selection
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
-
 from sklearn.model_selection import GridSearchCV, train_test_split # 파라미터 튜닝
 from imblearn.pipeline import Pipeline # 전처리, 모델 등을 하나의 pipeline으로 그룹화
 from imblearn.over_sampling import SMOTE # Oversampling
-
-
 
 # Hybrid Feature Selection 
 def label_feature_selection(y, df): # 타겟 데이터가 multi-class인 경우, 중요도에 따라 증강할 타겟 데이터 선별
@@ -41,8 +38,6 @@ def label_feature_selection(y, df): # 타겟 데이터가 multi-class인 경우,
     intersection_df = df[y.isin(intersection_features)] # Hybrid Feature Selection 데이터프레임에 적용
     
     return intersection_df
-
-
 
 def make_grid(updated_df, target_column): # 데이터 증강 비율 계산
     max_strategy = {}
