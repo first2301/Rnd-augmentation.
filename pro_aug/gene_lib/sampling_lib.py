@@ -20,8 +20,7 @@ from imblearn.over_sampling import SMOTE # Oversampling
 
 
 # Hybrid Feature Selection 
-
-def label_feature_selection(y, df):
+def label_feature_selection(y, df): # 타겟 데이터가 multi-class인 경우, 중요도에 따라 증강할 타겟 데이터 선별
     X = pd.get_dummies(y) # One-hot encoding
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
