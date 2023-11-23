@@ -19,21 +19,6 @@ def original_tab(df, target): # 원본 데이터 분포 확인 및 시각화
     st.plotly_chart(fig)
     st.write("Original DataFrame: ", df) 
 
-    # if len(df.columns) <= 2:
-    #    n_df = pd.DataFrame(original_value_counts.reset_index())
-    #    bar_fig = px.bar(n_df, x=n_df.iloc[:, 0], y=n_df.iloc[:, 1])
-    #    st.plotly_chart(bar_fig)
-    #    fig = px.pie(n_df, values=n_df.iloc[:, 1], names=n_df.iloc[:, 0], title='Pie Chart Sampling Data')
-    #    st.plotly_chart(fig)
-    #    st.write("Original DataFrame: ", df) 
-    # else:
-    #     n_df = pd.DataFrame(original_value_counts.reset_index())
-    #     bar_fig = px.bar(n_df, x=n_df.iloc[:, 0], y=n_df.iloc[:, 1])
-    #     st.plotly_chart(bar_fig)
-    #     fig = px.pie(n_df, values=n_df.iloc[:, 1], names=n_df.iloc[:, 0], title='Pie Chart Sampling Data')
-    #     st.plotly_chart(fig)
-    #     st.write("Original DataFrame: ", df) 
-
 def sampling_tab(sampling_df, target): # 증강된 데이터 분포 확인 및 시각화
     updated_target_series = sampling_df[target]
     updated_value_counts = updated_target_series.value_counts()
@@ -49,19 +34,6 @@ def sampling_tab(sampling_df, target): # 증강된 데이터 분포 확인 및 �
     sampling_fig = px.pie(n_df, values=n_df.iloc[:, 1], names=n_df.iloc[:, 0], title='Pie Chart Sampling Data')
     st.plotly_chart(sampling_fig)
     st.write("OverSampling DataFrame: ", sampling_df)
-
-    # if len(sampling_df.columns) >= 2:
-    #     n_df = pd.DataFrame(updated_value_counts.reset_index())
-    #     bar_fig = px.bar(n_df)
-    #     st.plotly_chart(bar_fig)
-    #     sampling_fig = px.pie(n_df, values=n_df.iloc[:, 1], names=n_df.iloc[:, 0], title='Pie Chart Sampling Data')
-    #     st.plotly_chart(sampling_fig)
-    #     st.write("OverSampling DataFrame: ", sampling_df)
-    # else:
-    #     st.bar_chart(updated_value_counts)
-    #     fig = px.pie(updated_value_counts, values=updated_value_counts.values, names=updated_value_counts.index, title='Pie Chart Original Data')
-    #     st.plotly_chart(fig)
-    #     st.write("OverSampling DataFrame: ", sampling_df)
 
 def eda_null_info(df): # Null 값 확인
     # st.write("Null information")
