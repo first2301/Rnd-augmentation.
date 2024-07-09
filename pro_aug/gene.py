@@ -2,6 +2,10 @@
 # https://docs.streamlit.io/library/advanced-features/configuration#set-configuration-options
 # 실행방법1: streamlit run gene.py
 # 실행방법2: streamlit run gene.py --server.maxUploadSize 500 --server.maxMessageSize 500 (업로드 파일 용량 증대할 경우)
+# streamlit 1.24.0 이상 버전에서 파일 업로드할 경우 AxiosError: Request failed with status code 403 발생할 수 있음
+# AxiosError 403 에러 발생 시 streamlit==1.24.0 버전으로 변경
+# pip install streamlit==1.24.0 or 1.26.0
+
 import json
 import requests
 import pandas as pd
@@ -38,7 +42,7 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
     updated_df = None
     feature_selection = None
     target_feature = "" # 예측할 Label
-    target_feature = [0] # target_feature가 tuple로 감싸져 있어서 인덱싱
+    # target_feature = [0] # target_feature가 tuple로 감싸져 있어서 인덱싱
     le = LabelEncoder() # LabelEncoder 객체 선언 
     sampling_threshold = 0 # Binary class 임계값 초기화 
 #################### sidebar
@@ -65,8 +69,8 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
 #################### Original Data tabs
         tab_raw_df, tab_null_info, tab_label_counts = st.tabs(['Original data', 'Null information', 'Target counts'])
         with tab_raw_df: # Original data tab
-            st.write("Original data")
-            st.dataframe(df)
+            st.subheader("Original data")
+            st.dataframe(df, use_container_width=True)
 
         with tab_null_info: # null information tab
             eda_null_info(df) # tabs > tab_vis (디렉토리에 있는 경로 확인)
@@ -80,7 +84,8 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
                 val_counts = df[target_feature].value_counts().reset_index()
                 val_counts_df = pd.DataFrame({'Labels': val_counts.iloc[:, 0],
                                             'Counts': val_counts.iloc[:, 1]})
-                st.write(val_counts_df)
+                
+                st.dataframe(val_counts_df, use_container_width=True)
                 # Target Data 설정해야 제거할 Label 선택 가능
                 label_to_drop = st.sidebar.multiselect('제거할 Target 데이터 선택', options=val_counts_df.iloc[:, 0])
                 bar_data = val_counts_df
@@ -190,16 +195,37 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
                     sampling_df = X_over_resampled
                     sampling_df[target] = y_over_resampled
 
-                # 증강한 데이터 출력
-                original_data, oversampling_data = st.columns(2) 
-                with original_data:
-                    original_tab(df, target_feature)  
+    #################### 증강된 데이터 전, 후 비교 출력
+                    # st.write(target)
+                    df_before = updated_df
+                    df_before = df_before.drop(target, axis=1)
+                    df_after = sampling_df
+                    df_after = df_after.drop(target, axis=1)
+                    
+                    column = df_before.columns.intersection(df_after.columns)
+                    # column = df_before.columns
+                    compare_tab = st.tabs([tab for tab in column])
 
-                with oversampling_data:
-                    sampling_tab(sampling_df, target)
+                    for idx, col in enumerate(column):
+                        with compare_tab[idx]:
+                            combined_df = pd.DataFrame({
+                                col: df_before[col],
+                                'sampled_' + col : df_after[col]
+                            })
+                            # combined_df = combined_df.drop(target[0], axis=1)
+                            st.area_chart(combined_df) # , color=['#7cfc00','#00bfff'] 
+        
+        #################### 증강한 데이터 출력
+                    original_data, oversampling_data = st.columns(2) 
+                    with original_data:
+                        original_tab(df, target_feature)  # 시각화 변경 시 tab_vis.py 코드 참고
+
+                    with oversampling_data:
+                        sampling_tab(sampling_df, target) # 시각화 변경 시 tab_vis.py 코드 참고
 
         # 데이터 전처리가 잘못 되었을 경우, 아래 설명 출력
         except ValueError as e:
+            # st.write(e)
             st.write('최소 2개 이상 Label이 있어합니다.')
             st.write('Target Label이 1개인 경우, 제거해야합니다.')
             st.write('데이터 전처리가 완료되어야 합니다.')
