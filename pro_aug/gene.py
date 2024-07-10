@@ -14,6 +14,7 @@ from tabs.tab_vis import *
 from gene_lib.sampling_lib import *
 from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import SMOTE 
+from io import StringIO
 
 st.set_page_config( # 레이아웃 설정
         page_title="Data generator",
@@ -34,7 +35,8 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
         4. Target data 정수 인코딩
         5. 제거할 Target 데이터 선택
         ''')
-
+                 
+    # @st.cache_data
     def load_data(uploaded_file):
         return pd.read_csv(uploaded_file)
     
@@ -169,8 +171,10 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
                     if feature_selection:
                         if feature_selection[0] == 'Multiclass':
                             selected_feature_df = label_feature_selection(updated_df[target_feature], updated_df)
+                            # sampling_strategy = thresh  
                         if feature_selection[0] == 'Binary class':
                             sampling_strategy = thresh  
+
                     if selected_feature_df is not None: # Multiclass인 경우
                         json_data = selected_feature_df.to_json() 
                         data_dump = json.dumps({'json_data':json_data, 'target': target_feature})
@@ -180,6 +184,7 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
                             json_data = response.json() 
                             json_result = json_data['result'] 
                             sampling_strategy = {int(key): int(value) for key, value in json_result.items()}
+
                         # grid_result = make_grid(selected_feature_df, target_feature) 
                         # sampling_strategy = make_ratio(grid_result) 
                     if selected_feature_df is None: # Binary class인 경우
@@ -202,19 +207,22 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
                     df_after = sampling_df
                     df_after = df_after.drop(target, axis=1)
                     
-                    column = df_before.columns.intersection(df_after.columns)
-                    # column = df_before.columns
-                    compare_tab = st.tabs([tab for tab in column])
+                    compare_tab_data = {'before_data': df_before.to_json(), 'after_data': df_after.to_json()}
+                    compare_dump_data = json.dumps(compare_tab_data)
+                    compare_json_data = json.loads(compare_dump_data) 
+                    compare_response = requests.post('http://127.0.0.1:8009/compare', json=compare_json_data)
+                    if compare_response.status_code == 200:
+                        compare_response_data = compare_response.json()
+                        compare_result_data = compare_response_data['compare_result'] 
 
-                    for idx, col in enumerate(column):
-                        with compare_tab[idx]:
-                            combined_df = pd.DataFrame({
-                                col: df_before[col],
-                                'sampled_' + col : df_after[col]
-                            })
-                            # combined_df = combined_df.drop(target[0], axis=1)
-                            st.area_chart(combined_df) # , color=['#7cfc00','#00bfff'] 
-        
+                        tab_names = list(compare_result_data.keys())
+                        tabs = st.tabs(tab_names)
+
+                        for idx, tab_name in enumerate(tab_names):
+                            with tabs[idx]:
+                                df_data = pd.read_json(StringIO(compare_result_data[tab_name]))
+                                st.area_chart(df_data, color=['#7cfc00','#00bfff'] ) # , color=['#7cfc00','#00bfff'] 
+
         #################### 증강한 데이터 출력
                     original_data, oversampling_data = st.columns(2) 
                     with original_data:
@@ -225,13 +233,14 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
 
         # 데이터 전처리가 잘못 되었을 경우, 아래 설명 출력
         except ValueError as e:
-            # st.write(e)
+            st.write(e)
             st.write('최소 2개 이상 Label이 있어합니다.')
             st.write('Target Label이 1개인 경우, 제거해야합니다.')
             st.write('데이터 전처리가 완료되어야 합니다.')
             st.write('Binary class인 경우, Multiclass가 적용되지 않습니다.')            
             # st.write(e)
         except AttributeError as e:
+            st.write(e)
             st.write('전처리가 완료되어야 합니다.')
             # st.write(e)
 
