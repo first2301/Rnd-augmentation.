@@ -15,6 +15,7 @@ from gene_lib.sampling_lib import *
 from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import SMOTE 
 from io import StringIO
+import time
 
 st.set_page_config( # 레이아웃 설정
         page_title="Data generator",
@@ -156,6 +157,7 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
 #################### sampling strategy
         try:
             if generator_button:
+                start_time = time.time()
                 if updated_df is None:
                     updated_df = df
                 
@@ -230,7 +232,10 @@ with st.spinner('Wait for it...'): # 로딩이 완료되지 않으면 "Wair for 
 
                     with oversampling_data:
                         sampling_tab(sampling_df, target) # 시각화 변경 시 tab_vis.py 코드 참고
-
+                
+                end_time = time.time()
+                execution_time = end_time - start_time  # 실행 시간 계산
+                print(f"코드 실행 시간: {execution_time} 초")
         # 데이터 전처리가 잘못 되었을 경우, 아래 설명 출력
         except ValueError as e:
             st.write(e)
